@@ -1,29 +1,40 @@
 "use client";
 
 import { useState } from "react";
+import { useAddUserMutation } from "../store/UsersApi";
 
 const RegisterForm = () => {
+  const [addUser] = useAddUserMutation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [addedMessage, setAddedMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (password != confirmPassword) {
       setErrorMessage("Passwords do not match !");
       return;
+    } else {
+      const newUser = {
+        email,
+        password,
+        confirmPassword,
+        firstName,
+        lastName,
+      };
+      try {
+        const response = await addUser(newUser);
+        response.error && setAddedMessage(response.error.data);
+      } catch (error) {
+        setErrorMessage(error);
+      }
+      console.log(newUser);
     }
-    const newUser = {
-      email,
-      password,
-      confirmPassword,
-      firstName,
-      lastName,
-    };
-    console.log(newUser);
   };
 
   return (
@@ -114,6 +125,11 @@ const RegisterForm = () => {
       {errorMessage && (
         <div className="bg-danger/10 border border-danger/30 text-sm rounded-lg px-4 py-2 mb-5 last:mb-0 text-danger">
           {errorMessage}
+        </div>
+      )}
+      {addedMessage && (
+        <div className="bg-success/10 border border-success/30 text-sm rounded-lg px-4 py-2 mb-5 last:mb-0 text-danger">
+          {addedMessage}
         </div>
       )}
       <div className="w-full">
