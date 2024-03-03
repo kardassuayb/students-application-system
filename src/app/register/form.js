@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useAddUserMutation } from "../store/UsersApi";
+import { useRouter } from "next/navigation";
 
 const RegisterForm = () => {
   const [addUser] = useAddUserMutation();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +31,7 @@ const RegisterForm = () => {
       };
       try {
         const response = await addUser(newUser);
+        router.push("/login");
         setEmail("");
         setPassword("");
         setConfirmPassword("");
