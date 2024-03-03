@@ -29,7 +29,13 @@ const RegisterForm = () => {
       };
       try {
         const response = await addUser(newUser);
-        response.error && setAddedMessage(response.error.data);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFirstName("");
+        setLastName("");
+        setAddedMessage("User successfully registered!");
+        setErrorMessage("");
       } catch (error) {
         setErrorMessage(error);
       }
@@ -38,7 +44,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-[400px]">
+    <form onSubmit={handleSubmit} className="space-y-4 w-auto">
       <div className="grid w-full items-center gap-1.5">
         <label
           htmlFor="input-label"
