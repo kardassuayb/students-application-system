@@ -6,7 +6,8 @@ import { useFetchApplicationsQuery } from "../store";
 
 const Dashboard = () => {
   const { data, error, isFetching } = useFetchApplicationsQuery();
-  console.log(data);
+
+  const [sortBy, setSortBy] = useState("");
 
   // TARİH FORMAT DEĞİŞİKLİĞİ
   const formatDate = (dateString) => {
@@ -52,6 +53,30 @@ const Dashboard = () => {
         };
       })
     : [];
+
+  // TABLE SORTING
+  const handleSortChange = (value) => {
+    setSortBy(value);
+  };
+
+  const sortedData = () => {
+    switch (sortBy) {
+      case "lowestPrice":
+        return [...transformedData].sort((a, b) => a.cost - b.cost);
+      case "highestPrice":
+        return [...transformedData].sort((a, b) => b.cost - a.cost);
+      case "ascendingDeadline":
+        return [...transformedData].sort(
+          (a, b) => new Date(a.deadlineDate) - new Date(b.deadlineDate)
+        );
+      case "descendingDeadline":
+        return [...transformedData].sort(
+          (a, b) => new Date(b.deadlineDate) - new Date(a.deadlineDate)
+        );
+      default:
+        return transformedData;
+    }
+  };
 
   // TARİH SIRALAMA FONKSİYONU
   const dateSortFunction = (rowA, rowB, columnId) => {
@@ -111,7 +136,7 @@ const Dashboard = () => {
   // ÜRÜN ARAMA
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredData = transformedData.filter((row) => {
+  const filteredData = sortedData().filter((row) => {
     const searchableColumns = [
       "name",
       "university",
@@ -205,6 +230,17 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          <select
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+            value={sortBy}
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            <option value="">Sort By</option>
+            <option value="lowestPrice">Lowest Price</option>
+            <option value="highestPrice">Highest Price</option>
+            <option value="ascendingDeadline">Ascending Deadline</option>
+            <option value="descendingDeadline">Descending Deadline</option>
+          </select>
         </div>
         <div className="p-3 border border-gray-200">
           {isFetching ? (
@@ -212,16 +248,12 @@ const Dashboard = () => {
               <div className="flex animate-pulse">
                 <div className="ml-4 mt-2 w-full">
                   <ul className="mt-5 space-y-3">
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
-                    <li className="w-full h-8 bg-gray-200 rounded-sm"></li>
+                    {[...Array(10)].map((_, index) => (
+                      <li
+                        key={index}
+                        className="w-full h-8 bg-gray-200 rounded-sm"
+                      ></li>
+                    ))}
                   </ul>
                 </div>
               </div>
