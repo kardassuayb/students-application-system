@@ -8,6 +8,21 @@ const Dashboard = () => {
   const { data, error, isFetching } = useFetchApplicationsQuery();
 
   const [sortBy, setSortBy] = useState("");
+  const [filters, setFilters] = useState({
+    country: "",
+    university: "",
+    duration: "",
+    costMin: "",
+    costMax: "",
+    language: "",
+  });
+
+  const handleFilterChange = (filterName, value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: value,
+    }));
+  };
 
   // TARİH FORMAT DEĞİŞİKLİĞİ
   const formatDate = (dateString) => {
@@ -136,22 +151,68 @@ const Dashboard = () => {
   // ÜRÜN ARAMA
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredData = sortedData().filter((row) => {
-    const searchableColumns = [
-      "name",
-      "university",
-      "country",
-      "cost",
-      "deadlineDate",
-      "duration",
-      "language",
-    ];
+  // const filteredData = sortedData().filter((row) => {
+  //   const searchableColumns = [
+  //     "name",
+  //     "university",
+  //     "country",
+  //     "cost",
+  //     "deadlineDate",
+  //     "duration",
+  //     "language",
+  //   ];
 
-    return searchableColumns.some((column) => {
-      const cellValue = String(row[column]).toLowerCase();
-      return cellValue.includes(searchTerm.toLowerCase());
+  //   return searchableColumns.some((column) => {
+  //     const cellValue = String(row[column]).toLowerCase();
+  //     return cellValue.includes(searchTerm.toLowerCase());
+  //   });
+  // });
+
+  // Apply filters
+  const filteredData = sortedData().filter((row) => {
+    return Object.entries(filters).every(([filterName, value]) => {
+      if (!value) return true;
+
+      switch (filterName) {
+        case "country":
+        case "university":
+        case "duration":
+        case "language":
+          return row[filterName] === value;
+        case "costMin":
+          return parseFloat(row.cost) >= parseFloat(value);
+        case "costMax":
+          return parseFloat(row.cost) <= parseFloat(value);
+        default:
+          return true;
+      }
     });
   });
+
+  // Dropdown options
+  const countryOptions = Array.from(
+    new Set(transformedData.map((row) => row.country))
+  );
+  const universityOptions = Array.from(
+    new Set(transformedData.map((row) => row.university))
+  );
+  const durationOptions = [
+    "1 year",
+    "2 years",
+    "3 years",
+    "4 years",
+    "5 years",
+    "6 years",
+    "7 years",
+    "8 years",
+  ];
+  const languageOptions = ["English", "French", "Turkish"];
+
+  const [showFilters, setShowFilters] = useState(false);
+
+  const toggleFilters = () => {
+    setShowFilters((prevShowFilters) => !prevShowFilters);
+  };
 
   // TABLO STİLLERİ
   const textColor = "#56606b";
@@ -206,17 +267,126 @@ const Dashboard = () => {
   return (
     <div>
       <div className="flex flex-col border bg-white border-gray-200 shadow-lg mb-6 relative p-4">
-        <div className="font-medium border border-gray-200 border-b-0 rounded-t-sm px-4 py-3 lg:flex lg:justify-end space-y-2 ">
+        <div className="font-medium border border-gray-200 border-b-0 rounded-t-sm px-4 py-3 lg:flex lg:justify-end space-x-2 ">
+          <div className="relative inline-flex">
+            <button
+              className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+              onClick={toggleFilters}
+            >
+              Filter
+            </button>
+            <div
+              className={`filtered-items absolute z-20 mt-2 min-w-[15rem] bg-white shadow-md border border-gray-200 rounded-sm p-2 top-10 transition-all ease-in-out delay-500 ${
+                showFilters ? "block" : "hidden"
+              } `}
+            >
+              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                <input
+                  type="text"
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  placeholder="Cost Min"
+                  value={filters.costMin}
+                  onChange={(e) =>
+                    handleFilterChange("costMin", e.target.value)
+                  }
+                />
+                <input
+                  type="text"
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  placeholder="Cost Max"
+                  value={filters.costMax}
+                  onChange={(e) =>
+                    handleFilterChange("costMax", e.target.value)
+                  }
+                />
+              </div>
+              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                <select
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  value={filters.country}
+                  onChange={(e) =>
+                    handleFilterChange("country", e.target.value)
+                  }
+                >
+                  <option value="">Country</option>
+                  {countryOptions.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                <select
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  value={filters.university}
+                  onChange={(e) =>
+                    handleFilterChange("university", e.target.value)
+                  }
+                >
+                  <option value="">University</option>
+                  {universityOptions.map((university) => (
+                    <option key={university} value={university}>
+                      {university}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                <select
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  value={filters.duration}
+                  onChange={(e) =>
+                    handleFilterChange("duration", e.target.value)
+                  }
+                >
+                  <option value="">Duration</option>
+                  {durationOptions.map((duration) => (
+                    <option key={duration} value={duration}>
+                      {duration}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                <select
+                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                  value={filters.language}
+                  onChange={(e) =>
+                    handleFilterChange("language", e.target.value)
+                  }
+                >
+                  <option value="">Language</option>
+                  {languageOptions.map((language) => (
+                    <option key={language} value={language}>
+                      {language}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <select
+            className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+            value={sortBy}
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            <option value="">Sort By</option>
+            <option value="lowestPrice">Lowest Price</option>
+            <option value="highestPrice">Highest Price</option>
+            <option value="ascendingDeadline">Ascending Deadline</option>
+            <option value="descendingDeadline">Descending Deadline</option>
+          </select>
           <div className="flex items-center gap-5 justify-end lg:justify-normal">
             <div className="relative flex rounded-sm">
               <input
                 type="text"
-                className="py-3 px-4 border border-gray-200 block w-full rounded-sm text-sm focus:border-gray-200 focus:ring-transparent focus:shadow-sm pl-4 focus:z-10 h-[2.375rem]"
+                className="py-3 px-4 border border-gray-200 block w-full rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm pl-4 focus:z-10 h-[2.375rem]"
                 placeholder="Search anything.."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none z-20 pr-4">
+              <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none z-19 pr-4">
                 <svg
                   className="h-4 w-4 text-gray-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -230,17 +400,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-            value={sortBy}
-            onChange={(e) => handleSortChange(e.target.value)}
-          >
-            <option value="">Sort By</option>
-            <option value="lowestPrice">Lowest Price</option>
-            <option value="highestPrice">Highest Price</option>
-            <option value="ascendingDeadline">Ascending Deadline</option>
-            <option value="descendingDeadline">Descending Deadline</option>
-          </select>
         </div>
         <div className="p-3 border border-gray-200">
           {isFetching ? (
