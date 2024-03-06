@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { useFetchApplicationsQuery } from "../store";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 
 const Dashboard = () => {
   const { data, error, isFetching } = useFetchApplicationsQuery();
@@ -45,14 +47,12 @@ const Dashboard = () => {
     ? data.map((application) => {
         const name = application.name || "";
         const university = application.university || "";
-        const country = application.country || "";
+        const country = application.cuntry || "";
         const cost = application.cost
           ? Number(application.cost).toFixed(2)
           : "";
         const deadlineDate = application.deadlineDate || "";
-        const duration = application.deadlineDate
-          ? application.deadlineDate - new Date()
-          : "";
+        const duration = application.duration || "";
         const language = application.language || "";
         const applicationId = application.id;
 
@@ -104,46 +104,43 @@ const Dashboard = () => {
   const columns = [
     {
       name: "Name",
-      sortable: true,
       selector: (row) => row.name,
-      width: "200px",
+      width: "240px",
     },
     {
       name: "University",
-      sortable: true,
       selector: (row) => row.university,
+      width: "240px",
     },
     {
       name: "Country",
-      sortable: true,
       selector: (row) => row.country,
-      width: "150px",
+      width: "240px",
     },
     {
       name: "Duration",
-      sortable: true,
       selector: (row) => row.duration,
-      cell: (row) => <div>{formatDate(row.duration)}</div>,
+      cell: (row) => <div>{row.duration}</div>,
       sortFunction: (rowA, rowB) => dateSortFunction(rowA, rowB, "duration"),
     },
     {
       name: "Cost",
-      sortable: true,
       selector: (row) => row.cost,
-      right: true,
+      // right: true,
     },
     {
       name: "Deadline Date",
-      sortable: true,
-      right: true,
+      // right: true,
       selector: (row) => row.deadlineDate,
-      cell: (row) => <div>{formatDate(row.deadlineDate)}</div>,
+      cell: (row) => (
+        <div className="text-end">{formatDate(row.deadlineDate)}</div>
+      ),
       sortFunction: (rowA, rowB) =>
         dateSortFunction(rowA, rowB, "deadlineDate"),
     },
     {
       name: "Language",
-      sortable: true,
+      // right: true,
       selector: (row) => row.language,
     },
   ];
@@ -170,32 +167,39 @@ const Dashboard = () => {
 
   // Apply filters
   const filteredData = sortedData().filter((row) => {
-    return Object.entries(filters).every(([filterName, value]) => {
-      if (!value) return true;
+    return (
+      Object.entries(filters).every(([filterName, value]) => {
+        if (!value) return true;
 
-      switch (filterName) {
-        case "country":
-        case "university":
-        case "duration":
-        case "language":
-          return row[filterName] === value;
-        case "costMin":
-          return parseFloat(row.cost) >= parseFloat(value);
-        case "costMax":
-          return parseFloat(row.cost) <= parseFloat(value);
-        default:
-          return true;
-      }
-    });
+        switch (filterName) {
+          case "country":
+          case "university":
+          case "duration":
+          case "language":
+            return row[filterName] === value;
+          case "costMin":
+            return parseFloat(row.cost) >= parseFloat(value);
+          case "costMax":
+            return parseFloat(row.cost) <= parseFloat(value);
+          default:
+            return true;
+        }
+      }) &&
+      Object.values(row).some(
+        (value) =>
+          value &&
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
   });
 
   // Dropdown options
   const countryOptions = Array.from(
     new Set(transformedData.map((row) => row.country))
-  );
+  ).sort();
   const universityOptions = Array.from(
     new Set(transformedData.map((row) => row.university))
-  );
+  ).sort();
   const durationOptions = [
     "1 year",
     "2 years",
@@ -206,9 +210,30 @@ const Dashboard = () => {
     "7 years",
     "8 years",
   ];
-  const languageOptions = ["English", "French", "Turkish"];
+
+  const languageOptions = Array.from(
+    new Set(transformedData.map((row) => row.language))
+  ).sort();
 
   const [showFilters, setShowFilters] = useState(false);
+
+  const filteredItemsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        filteredItemsRef.current &&
+        !filteredItemsRef.current.contains(event.target)
+      ) {
+        setShowFilters(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const toggleFilters = () => {
     setShowFilters((prevShowFilters) => !prevShowFilters);
@@ -267,136 +292,147 @@ const Dashboard = () => {
   return (
     <div>
       <div className="flex flex-col border bg-white border-gray-200 shadow-lg mb-6 relative p-4">
-        <div className="font-medium border border-gray-200 border-b-0 rounded-t-sm px-4 py-3 lg:flex lg:justify-end space-x-2 ">
-          <div className="relative inline-flex">
-            <button
-              className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-              onClick={toggleFilters}
-            >
-              Filter
-            </button>
-            <div
-              className={`filtered-items absolute z-20 mt-2 min-w-[15rem] bg-white shadow-md border border-gray-200 rounded-sm p-2 top-10 transition-all ease-in-out delay-500 ${
-                showFilters ? "block" : "hidden"
-              } `}
-            >
-              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
-                <input
-                  type="text"
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  placeholder="Cost Min"
-                  value={filters.costMin}
-                  onChange={(e) =>
-                    handleFilterChange("costMin", e.target.value)
-                  }
-                />
-                <input
-                  type="text"
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  placeholder="Cost Max"
-                  value={filters.costMax}
-                  onChange={(e) =>
-                    handleFilterChange("costMax", e.target.value)
-                  }
-                />
-              </div>
-              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
-                <select
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  value={filters.country}
-                  onChange={(e) =>
-                    handleFilterChange("country", e.target.value)
-                  }
-                >
-                  <option value="">Country</option>
-                  {countryOptions.map((country) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
-                <select
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  value={filters.university}
-                  onChange={(e) =>
-                    handleFilterChange("university", e.target.value)
-                  }
-                >
-                  <option value="">University</option>
-                  {universityOptions.map((university) => (
-                    <option key={university} value={university}>
-                      {university}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
-                <select
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  value={filters.duration}
-                  onChange={(e) =>
-                    handleFilterChange("duration", e.target.value)
-                  }
-                >
-                  <option value="">Duration</option>
-                  {durationOptions.map((duration) => (
-                    <option key={duration} value={duration}>
-                      {duration}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-x-3.5 py-2 px-3 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
-                <select
-                  className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-                  value={filters.language}
-                  onChange={(e) =>
-                    handleFilterChange("language", e.target.value)
-                  }
-                >
-                  <option value="">Language</option>
-                  {languageOptions.map((language) => (
-                    <option key={language} value={language}>
-                      {language}
-                    </option>
-                  ))}
-                </select>
+        <div className="font-medium border border-gray-200 border-b-0 rounded-t-sm px-4 py-3 flex flex-row justify-between lg:space-y-0 gap-y-4 lg:flex-row md:flex-col">
+          <h5 className="text-lg sm:text-2xl text-gray-600 my-auto mx-auto md:mx-0">
+            Student Applications
+          </h5>
+          <div className="flex md:space-x-2 justify-end items-end md:flex-row flex-col md:space-y-0 gap-y-2">
+            <div className="flex relative" ref={filteredItemsRef}>
+              <button
+                className="flex justify-between items-center w-52 py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                onClick={toggleFilters}
+              >
+                Filter
+                <FontAwesomeIcon icon={faChevronDown} />
+              </button>
+              <div
+                className={`filtered-items absolute z-20 mt-2 min-w-[12rem] bg-gray-50 shadow-lg border border-gray-200 rounded-sm p-2 top-10 right-0 transition-all ease-in-out delay-500 ${
+                  showFilters ? "block" : "hidden"
+                } `}
+              >
+                <div className="flex items-center w-full gap-x-2 py-2 px-2 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                  <input
+                    type="text"
+                    className="py-1 px-1 w-1/2 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                    placeholder="    min"
+                    value={filters.costMin}
+                    onChange={(e) =>
+                      handleFilterChange("costMin", e.target.value)
+                    }
+                  />
+                  {"-"}
+                  <input
+                    type="text"
+                    className="py-1 px-1 w-1/2 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
+                    placeholder="    max"
+                    value={filters.costMax}
+                    onChange={(e) =>
+                      handleFilterChange("costMax", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="flex items-center w-full py-2 px-2 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                  <select
+                    className="py-1 px-4 w-full border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500 cursor-pointer"
+                    value={filters.country}
+                    onChange={(e) =>
+                      handleFilterChange("country", e.target.value)
+                    }
+                  >
+                    <option value="">Country</option>
+                    {countryOptions.map((country) => (
+                      <option
+                        className="cursor-pointer"
+                        key={country}
+                        value={country}
+                      >
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center w-full py-2 px-2 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                  <select
+                    className="py-1 w-full px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500 cursor-pointer"
+                    value={filters.university}
+                    onChange={(e) =>
+                      handleFilterChange("university", e.target.value)
+                    }
+                  >
+                    <option value="">University</option>
+                    {universityOptions.map((university) => (
+                      <option key={university} value={university}>
+                        {university}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center w-full py-2 px-2 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                  <select
+                    className="py-1 px-4 w-full border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500 cursor-pointer"
+                    value={filters.duration}
+                    onChange={(e) =>
+                      handleFilterChange("duration", e.target.value)
+                    }
+                  >
+                    <option value="">Duration</option>
+                    {durationOptions.map((duration) => (
+                      <option key={duration} value={duration}>
+                        {duration}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center w-full py-2 px-2 rounded-sm text-sm text-gray-800 hover:bg-gray-50 focus:ring-0 focus:ring-primary">
+                  <select
+                    className="py-1 px-4 w-full border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500 cursor-pointer"
+                    value={filters.language}
+                    onChange={(e) =>
+                      handleFilterChange("language", e.target.value)
+                    }
+                  >
+                    <option value="">Language</option>
+                    {languageOptions.map((language) => (
+                      <option key={language} value={language}>
+                        {language}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-          <select
-            className="py-1 px-4 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500"
-            value={sortBy}
-            onChange={(e) => handleSortChange(e.target.value)}
-          >
-            <option value="">Sort By</option>
-            <option value="lowestPrice">Lowest Price</option>
-            <option value="highestPrice">Highest Price</option>
-            <option value="ascendingDeadline">Ascending Deadline</option>
-            <option value="descendingDeadline">Descending Deadline</option>
-          </select>
-          <div className="flex items-center gap-5 justify-end lg:justify-normal">
-            <div className="relative flex rounded-sm">
-              <input
-                type="text"
-                className="py-3 px-4 border border-gray-200 block w-full rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm pl-4 focus:z-10 h-[2.375rem]"
-                placeholder="Search anything.."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none z-19 pr-4">
-                <svg
-                  className="h-4 w-4 text-gray-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  viewBox="0 0 16 16"
-                >
-                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                </svg>
+            <select
+              className="py-1 px-4 w-52 border border-gray-200 rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm focus:z-10 h-[2.375rem] text-gray-500 cursor-pointer"
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+            >
+              <option value="">Sort By</option>
+              <option value="lowestPrice">Lowest Price</option>
+              <option value="highestPrice">Highest Price</option>
+              <option value="ascendingDeadline">Ascending Deadline</option>
+              <option value="descendingDeadline">Descending Deadline</option>
+            </select>
+            <div className="flex items-center gap-5 w-52">
+              <div className="relative flex rounded-sm">
+                <input
+                  type="text"
+                  className="py-3 px-4 border border-gray-200 block w-full rounded-sm text-sm focus:border-blue-500 focus:ring-transparent focus:outline-none focus:shadow-sm pl-4 focus:z-10 h-[2.375rem]"
+                  placeholder="Search anything.."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pointer-events-none z-19 pr-4">
+                  <svg
+                    className="h-4 w-4 text-gray-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
