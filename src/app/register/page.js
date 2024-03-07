@@ -4,7 +4,7 @@ import RegisterForm from "./form";
 
 const RegisterPage = () => {
   return (
-    <div className="min-h-screen flex justify-center items-center bg-slate-100">
+    <div className="min-h-screen flex justify-center items-center bg-[#bacddf]">
       <div className="max-w-xs w-full bg-white rounded-xl shadow-md overflow-hidden md:max-w-sm m-4 md:m-0">
         <div className="p-6">
           <h1 className="text-2xl font-semibold text-gray-800 mb-4 text-center">

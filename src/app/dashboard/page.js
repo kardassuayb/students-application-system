@@ -4,7 +4,13 @@ import { useRef, useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { useFetchApplicationsQuery } from "../store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronDown,
+  faAddressCard,
+  faRightFromBracket,
+} from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
+import Image from "next/image";
 
 const Dashboard = () => {
   const { data, error, isFetching } = useFetchApplicationsQuery();
@@ -290,9 +296,29 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col border bg-white border-gray-200 shadow-lg mb-6 relative p-4">
-        <div className="font-medium border border-gray-200 border-b-0 rounded-t-sm px-4 py-3 flex flex-row justify-between lg:space-y-0 gap-y-4 lg:flex-row md:flex-col">
+    <div className="flex min-h-screen flex-col">
+      <header className="flex justify-between py-4 px-8 bg-[#bacddf]">
+        <div className="flex-1">
+          <Link href="/" className="btn btn-ghost text-xl">
+            <Image src="/jiva3.png" alt="Logo" width={40} height={40} />
+          </Link>
+        </div>
+        <div className="">
+          <ul className="flex gap-8">
+            <li>
+              <Link
+                href="/login"
+                className="text-[#825614] text-lg font-semibold flex items-center gap-2"
+              >
+                Logout
+                <FontAwesomeIcon size={24} icon={faRightFromBracket} />
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </header>
+      <div className="flex flex-col border bg-[#bacddf] border-gray-200 shadow-lg relative">
+        <div className="font-medium border bg-white border-gray-200 border-b-0 border-t-0 px-4 py-3 flex flex-row justify-between lg:space-y-0 gap-y-4 lg:flex-row md:flex-col">
           <h5 className="text-lg sm:text-2xl text-gray-600 my-auto mx-auto md:mx-0">
             Student Applications
           </h5>
@@ -303,7 +329,9 @@ const Dashboard = () => {
                 onClick={toggleFilters}
               >
                 Filter
-                <FontAwesomeIcon icon={faChevronDown} />
+                <i>
+                  <FontAwesomeIcon icon={faChevronDown} />
+                </i>
               </button>
               <div
                 className={`filtered-items absolute z-20 mt-2 min-w-[12rem] bg-gray-50 shadow-lg border border-gray-200 rounded-sm p-2 top-10 right-0 transition-all ease-in-out delay-500 ${
@@ -437,7 +465,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        <div className="p-3 border border-gray-200">
+        <div className="bg-white border border-gray-200 rounded-b-md">
           {isFetching ? (
             <div className="border rounded-sm shadow-sm p-6">
               <div className="flex animate-pulse">

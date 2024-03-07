@@ -28,16 +28,30 @@ const RegisterForm = () => {
         confirmPassword,
         firstName,
         lastName,
+        isLoggedIn: false,
       };
       try {
         const response = await addUser(newUser);
-        router.push("/login");
+        setAddedMessage(
+          <div className="flex justify-between items-center">
+            <span className="text-success text-sm">Redirecting to Login..</span>
+            <div
+              className="animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full w-4 h-4 text-success text-sm"
+              role="status"
+              aria-label="loading"
+            >
+              <span className="sr-only">Loading...</span>
+            </div>
+          </div>
+        );
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
         setEmail("");
         setPassword("");
         setConfirmPassword("");
         setFirstName("");
         setLastName("");
-        setAddedMessage("User successfully registered!");
         setErrorMessage("");
       } catch (error) {
         setErrorMessage(error);

@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useFetchUsersQuery } from "../store";
+import { useEffect, useState } from "react";
+import { useFetchUsersQuery, useUpdateUserMutation } from "../store";
 import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
   const router = useRouter();
 
   const { data, error, isFetching } = useFetchUsersQuery();
+  console.log(data);
+  const [updateUser] = useUpdateUserMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [addedMessage, setAddedMessage] = useState("");
@@ -15,12 +17,32 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = data.find(
-      (user) => user.email === email && user.password === password
-    );
 
-    if (user) {
-      router.push("/dashboard");
+    const user = data
+      ? data.find((user) => user.email === email && user.password === password)
+      : "";
+
+    if (user != null) {
+      try {
+        const response = await updateUser({ id: user.id, isLoggedIn: true });
+        setAddedMessage(
+          <div className="flex justify-between items-center">
+            <span className="text-success text-sm">Redirecting..</span>
+            <div
+              className="animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full w-4 h-4 text-success text-sm"
+              role="status"
+              aria-label="loading"
+            >
+              <span className="sr-only">Loading...</span>
+            </div>
+          </div>
+        );
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000);
+      } catch (error) {
+        setErrorMessage(error.message);
+      }
     } else {
       setErrorMessage("Incorrect email address or password");
     }

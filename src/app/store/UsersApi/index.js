@@ -30,9 +30,22 @@ const UsersApi = createApi({
           };
         },
       }),
+      updateUser: builder.mutation({
+        query: ({ id, isLoggedIn }) => {
+          return {
+            url: `users/${id}`,
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: { isLoggedIn: isLoggedIn },
+          };
+        },
+      }),
     };
   },
 });
 
 export { UsersApi };
-export const { useFetchUsersQuery, useAddUserMutation } = UsersApi;
+export const { useFetchUsersQuery, useAddUserMutation, useUpdateUserMutation } =
+  UsersApi;

@@ -25,10 +25,12 @@
     "react-redux": "^9.1.0",
     "react-select": "^5.8.0",
     "tailwind-merge": "^2.2.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",
+    "daisyui": "^4.7.2",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8",

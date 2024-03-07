@@ -19,5 +19,9 @@ setupListeners(store.dispatch);
 
 export default store;
 
-export { useFetchUsersQuery, useAddUserMutation } from "./UsersApi";
+export {
+  useFetchUsersQuery,
+  useAddUserMutation,
+  useUpdateUserMutation,
+} from "./UsersApi";
 export { useFetchApplicationsQuery } from "./ApplicationsApi";
