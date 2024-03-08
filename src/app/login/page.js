@@ -1,6 +1,7 @@
 "use-client";
 import Link from "next/link";
 import LoginForm from "./form";
+import { Suspense } from "react";
 
 const LoginPage = () => {
   return (
@@ -10,7 +11,9 @@ const LoginPage = () => {
           <h1 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
             Sign In
           </h1>
-          <LoginForm />
+          <Suspense>
+            <LoginForm />
+          </Suspense>
           <p className="text-center text-sm text-gray-700 mt-4">
             or,{" "}
             <Link
