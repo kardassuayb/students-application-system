@@ -1,3 +1,27 @@
+In this project,
+
+I chose Next.js (App Router) to benefit from SEO advantages and fast rendering.
+I used Redux Toolkit Query in API requests.
+I used the Tailwind library for styling.
+I created it completely responsive.
+
+I prepared the API data used throughout the project using mockAPI.
+
+Since I did not have an Auth API source, I could not benefit from libraries such as nextAuth, but I simulated the users' Auth status throughout the project with requests sent to the API.
+
+I used react features such as useState, useEffect and Next properties such as useSearchParams, Link, Image and so on..
+
+I used the react-data-table-component library to list the data in the table;
+https://react-data-table-component.netlify.app/
+I used the FontAweSome library for icons;
+https://fontawesome.com/
+I used the daisyUI library for the header interface;
+https://daisyui.com/
+
+
+
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
