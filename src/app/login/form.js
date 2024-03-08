@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFetchUsersQuery, useUpdateUserMutation } from "../store";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const LoginForm = () => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { data, error, isFetching } = useFetchUsersQuery();
-  console.log(data);
   const [updateUser] = useUpdateUserMutation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +37,9 @@ const LoginForm = () => {
           </div>
         );
         setTimeout(() => {
-          router.push("/dashboard");
+          const queryParams = new URLSearchParams(searchParams);
+          queryParams.set("userId", user.id);
+          window.location.href = `/dashboard?${queryParams.toString()}`;
         }, 2000);
       } catch (error) {
         setErrorMessage(error.message);

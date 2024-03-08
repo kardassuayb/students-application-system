@@ -56,7 +56,6 @@ const RegisterForm = () => {
       } catch (error) {
         setErrorMessage(error);
       }
-      console.log(newUser);
     }
   };
 

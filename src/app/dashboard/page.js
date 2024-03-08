@@ -1,12 +1,12 @@
 "use client";
 
+import { useSearchParams, useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
-import { useFetchApplicationsQuery } from "../store";
+import { useFetchApplicationsQuery, useUpdateUserMutation } from "../store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronDown,
-  faAddressCard,
   faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
@@ -14,6 +14,17 @@ import Image from "next/image";
 
 const Dashboard = () => {
   const { data, error, isFetching } = useFetchApplicationsQuery();
+
+  const [userId, setUserId] = useState(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const userIdParam = searchParams.get("userId");
+    if (userIdParam) {
+      setUserId(userIdParam);
+    }
+  }, [searchParams]);
 
   const [sortBy, setSortBy] = useState("");
   const [filters, setFilters] = useState({
@@ -32,7 +43,6 @@ const Dashboard = () => {
     }));
   };
 
-  // TARİH FORMAT DEĞİŞİKLİĞİ
   const formatDate = (dateString) => {
     const options = {
       year: "numeric",
@@ -99,7 +109,6 @@ const Dashboard = () => {
     }
   };
 
-  // TARİH SIRALAMA FONKSİYONU
   const dateSortFunction = (rowA, rowB, columnId) => {
     const dateA = rowA[columnId].replace(/[./: ]/g, "");
     const dateB = rowB[columnId].replace(/[./: ]/g, "");
@@ -132,11 +141,9 @@ const Dashboard = () => {
     {
       name: "Cost",
       selector: (row) => row.cost,
-      // right: true,
     },
     {
       name: "Deadline Date",
-      // right: true,
       selector: (row) => row.deadlineDate,
       cell: (row) => (
         <div className="text-end">{formatDate(row.deadlineDate)}</div>
@@ -146,32 +153,12 @@ const Dashboard = () => {
     },
     {
       name: "Language",
-      // right: true,
       selector: (row) => row.language,
     },
   ];
 
-  // ÜRÜN ARAMA
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // const filteredData = sortedData().filter((row) => {
-  //   const searchableColumns = [
-  //     "name",
-  //     "university",
-  //     "country",
-  //     "cost",
-  //     "deadlineDate",
-  //     "duration",
-  //     "language",
-  //   ];
-
-  //   return searchableColumns.some((column) => {
-  //     const cellValue = String(row[column]).toLowerCase();
-  //     return cellValue.includes(searchTerm.toLowerCase());
-  //   });
-  // });
-
   // Apply filters
+  const [searchTerm, setSearchTerm] = useState("");
   const filteredData = sortedData().filter((row) => {
     return (
       Object.entries(filters).every(([filterName, value]) => {
@@ -245,6 +232,24 @@ const Dashboard = () => {
     setShowFilters((prevShowFilters) => !prevShowFilters);
   };
 
+  //LOGOUT
+
+  const [processing, setProcessing] = useState(false);
+  const [updateUser] = useUpdateUserMutation();
+  const handleLogOut = async (e) => {
+    setProcessing(true);
+    e.preventDefault();
+
+    try {
+      const response = await updateUser({ id: userId, isLoggedIn: false });
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   // TABLO STİLLERİ
   const textColor = "#56606b";
   const tableStyles = {
@@ -303,16 +308,29 @@ const Dashboard = () => {
             <Image src="/jiva3.png" alt="Logo" width={40} height={40} />
           </Link>
         </div>
-        <div className="">
+        <div className="flex items-center">
           <ul className="flex gap-8">
             <li>
-              <Link
-                href="/login"
-                className="text-[#825614] text-lg font-semibold flex items-center gap-2"
-              >
-                Logout
-                <FontAwesomeIcon size={24} icon={faRightFromBracket} />
-              </Link>
+              {processing ? (
+                <div className="flex justify-between items-center">
+                  <div
+                    className="animate-spin inline-block border-[3px] border-current border-t-transparent rounded-full w-4 h-4 text-[#825614] text-sm"
+                    role="status"
+                    aria-label="loading"
+                  >
+                    <span className="sr-only">Loading...</span>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-[#825614] text-lg font-semibold flex items-center gap-2"
+                  onClick={handleLogOut}
+                >
+                  Logout
+                  <FontAwesomeIcon icon={faRightFromBracket} />
+                </Link>
+              )}
             </li>
           </ul>
         </div>
