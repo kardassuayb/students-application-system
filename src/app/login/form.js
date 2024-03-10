@@ -85,7 +85,7 @@ const LoginForm = () => {
           minLength="10"
         />
       </div>
-      {errorMessage && (
+      {errorMessage && !addedMessage && (
         <div className="bg-danger/10 border border-danger/30 text-sm rounded-lg px-4 py-2 mb-5 last:mb-0 text-danger">
           {errorMessage}
         </div>
